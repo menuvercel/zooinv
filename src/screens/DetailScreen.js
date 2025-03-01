@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { 
     View, 
     Text, 
@@ -9,7 +9,8 @@ import {
     Animated,
     Dimensions,
     TouchableOpacity,
-    BackHandler
+    BackHandler,
+    FlatList
 } from 'react-native';
 import { 
     getClasesByFiloId, 
@@ -25,6 +26,8 @@ const { width } = Dimensions.get('window');
 const DetailScreen = ({ route, navigation }) => {
     const { item, type, title, parentFiloId } = route.params;
     const [scrollY] = useState(new Animated.Value(0));
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const flatListRef = useRef(null);
     
     // Controlamos el botón de atrás físico del dispositivo
     useFocusEffect(
@@ -188,6 +191,54 @@ const DetailScreen = ({ route, navigation }) => {
         );
     };
 
+    // Función para renderizar cada imagen del slider
+    const renderImageItem = ({ item: image, index }) => (
+        <View style={styles.imagenContainer}>
+            <Image
+                source={image}
+                style={styles.imagen}
+                resizeMode="cover"
+            />
+            <LinearGradient
+                colors={['transparent', 'rgba(255,255,255,0.9)', '#ffffff']}
+                style={styles.imageGradient}
+            />
+        </View>
+    );
+    
+    // Función para manejar el cambio de imagen
+    const handleImageChange = (event) => {
+        if (!event || !event.nativeEvent) return;
+        
+        const slideWidth = width;
+        const offset = event.nativeEvent.contentOffset.x;
+        const slideIndex = Math.round(offset / slideWidth);
+        
+        if (slideIndex !== currentImageIndex) {
+            setCurrentImageIndex(slideIndex);
+        }
+    };
+    
+    // Función para renderizar los indicadores de página
+    const renderPaginationDots = () => {
+        const images = item?.imagenes || [];
+        if (images.length <= 1) return null;
+        
+        return (
+            <View style={styles.paginationContainer}>
+                {images.map((_, index) => (
+                    <View
+                        key={index}
+                        style={[
+                            styles.paginationDot,
+                            { opacity: index === currentImageIndex ? 1 : 0.5 }
+                        ]}
+                    />
+                ))}
+            </View>
+        );
+    };
+
     // Verificar que item existe antes de renderizar
     if (!item) {
         return (
@@ -196,6 +247,9 @@ const DetailScreen = ({ route, navigation }) => {
             </SafeAreaView>
         );
     }
+
+    // Preparar las imágenes para el slider
+    const images = item.imagenes || (item.imagen ? [item.imagen] : []);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -223,18 +277,45 @@ const DetailScreen = ({ route, navigation }) => {
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Imagen grande que sale de los bordes */}
-                {item.imagen && (
-                    <View style={styles.imagenContainer}>
-                        <Image
-                            source={item.imagen}
-                            style={styles.imagen}
-                            resizeMode="cover"
+                {/* Slider de imágenes */}
+                {images.length > 0 && (
+                    <View>
+                        <FlatList
+                            ref={flatListRef}
+                            data={images}
+                            renderItem={renderImageItem}
+                            keyExtractor={(_, index) => index.toString()}
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            onMomentumScrollEnd={handleImageChange}
+                            onScroll={Animated.event(
+                                [{ nativeEvent: { contentOffset: { x: new Animated.Value(0) } } }],
+                                { 
+                                    useNativeDriver: false,
+                                    listener: (event) => {
+                                        // Actualizar el índice durante el desplazamiento también
+                                        const slideWidth = width;
+                                        const offset = event.nativeEvent.contentOffset.x;
+                                        const slideIndex = Math.round(offset / slideWidth);
+                                        
+                                        if (slideIndex !== currentImageIndex && slideIndex >= 0 && slideIndex < images.length) {
+                                            setCurrentImageIndex(slideIndex);
+                                        }
+                                    }
+                                }
+                            )}
+                            scrollEventThrottle={16}
+                            style={styles.imageSlider}
                         />
-                        <LinearGradient
-                            colors={['transparent', 'rgba(255,255,255,0.9)', '#ffffff']}
-                            style={styles.imageGradient}
-                        />
+                        {renderPaginationDots()}
+                        {images.length > 1 && (
+                            <View style={styles.imageCounter}>
+                                <Text style={styles.imageCounterText}>
+                                    {currentImageIndex + 1}/{images.length}
+                                </Text>
+                            </View>
+                        )}
                     </View>
                 )}
 
@@ -309,6 +390,42 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: 50,
+    },
+    imageSlider: {
+        width: width,
+    },
+    paginationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 10,
+        width: '100%',
+    },
+    paginationDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: 'white',
+        marginHorizontal: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.3,
+        shadowRadius: 2,
+    },
+    imageCounter: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 15,
+    },
+    imageCounterText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 'bold',
     },
     infoContainer: {
         paddingHorizontal: 20,

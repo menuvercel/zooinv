@@ -2,7 +2,10 @@ export const filos = [
     {
         id: 'placozoa',
         nombre: 'Placozoa',
-        imagen: require('../../assets/images/filos/PLACOZOA.jpg'),
+        imagen: require('../../assets/images/filos/placozoa.jpg'),
+        imagenes: [
+            require('../../assets/images/filos/placozoa.jpg')
+        ],
         caracteristicas: [
             'Cuerpo aplanado y macizo',
             'Bordes del cuerpo irregulares',
@@ -15,6 +18,11 @@ export const filos = [
         id: 'porifera',
         nombre: 'Porifera',
         imagen: require('../../assets/images/filos/porifera.jpg'),
+        imagenes: [
+            require('../../assets/images/filos/porifera.jpg'),
+            require('../../assets/images/filos/porifera2.jpg'),
+            require('../../assets/images/filos/porifera3.jpg')
+        ],
         caracteristicas: [
             'Cuerpo con paredes perforadas (Suficiente)',
             'Mesohilo con células móviles',
@@ -28,6 +36,7 @@ export const filos = [
         id: 'cnidaria',
         nombre: 'Cnidaria',
         imagen: null,
+        imagenes: [],
         caracteristicas: [
             'Forma de pólipo y/o medusa (Suficiente)',
             'Con cnidocitos de origen intrínseco (Suficiente)',
@@ -41,6 +50,7 @@ export const filos = [
         id: 'platyhelminthes',
         nombre: 'Platyhelminthes',
         imagen: null,
+        imagenes: [],
         caracteristicas: [
             'Parásitos, comensales o de vida libre',
             'Gusanos no segmentados',
@@ -59,6 +69,7 @@ export const filos = [
         id: 'nemertea',
         nombre: 'Nemertea (Rhynchocoela)',
         imagen: null,
+        imagenes: [],
         caracteristicas: [
             'Triploblásticos',
             'Bilaterales',
@@ -75,6 +86,7 @@ export const filos = [
         id: 'arthropoda',
         nombre: 'Arthropoda',
         imagen: null,
+        imagenes: [],
         caracteristicas: [
             'Bilaterales',
             'Metamerizados',
@@ -95,7 +107,10 @@ export const getClasesByFiloId = (filoId) => {
                     id: 'calcarea',
                     filoId: 'porifera',
                     nombre: 'Calcarea o Calcispongia',
-                    imagen: null,
+                    imagen: require('../../assets/images/clases/calcarea.jpg'),
+                    imagenes: [
+                        require('../../assets/images/clases/calcarea.jpg'),
+                    ],
                     caracteristicas: [
                         'Estructura asconoide, siconoide o leuconoide',
                         'Espículas calcáreas solamente (Suficiente)'
@@ -106,7 +121,11 @@ export const getClasesByFiloId = (filoId) => {
                     id: 'hexactinellida',
                     filoId: 'porifera',
                     nombre: 'Hexactinellida o Hyalospongiae',
-                    imagen: null,
+                    imagen: require('../../assets/images/clases/hexactinellida.jpg'),
+                    imagenes: [
+                        require('../../assets/images/clases/hexactinellida.jpg'),
+                        require('../../assets/images/clases/hexactinellida2.jpg'),
+                    ],
                     caracteristicas: [
                         'Estructura siconoide',
                         'Espículas silíceas hexactinélidas y no hexactinélidas (Suficiente)'
@@ -117,7 +136,11 @@ export const getClasesByFiloId = (filoId) => {
                     id: 'demospongiae',
                     filoId: 'porifera',
                     nombre: 'Demospongiae',
-                    imagen: null,
+                    imagen: require('../../assets/images/clases/demospongiae.jpg'),
+                    imagenes: [
+                        require('../../assets/images/clases/demospongiae.jpg'),
+                        require('../../assets/images/clases/demospongiae2.jpg'),
+                    ],
                     caracteristicas: [
                         'Estructura leuconoide',
                         'Fibras de espongina solamente (suficiente) o espículas silíceas no hexactinélidas solamente o fibras de espongina con espículas silíceas no hexactinélidas (Suficiente) o sin esqueleto'
@@ -128,7 +151,11 @@ export const getClasesByFiloId = (filoId) => {
                     id: 'homoscleromorpha',
                     filoId: 'porifera',
                     nombre: 'Homoscleromorpha',
-                    imagen: null,
+                    imagen: require('../../assets/images/clases/homoscleromorpha.jpg'),
+                    imagenes: [
+                        require('../../assets/images/clases/homoscleromorpha.jpg'),
+                        require('../../assets/images/clases/homoscleromorpha2.jpg'),
+                    ],
                     caracteristicas: [
                         'Estructura leuconoide',
                         'Esqueleto rígido casi siempre ausente; solo espículas tetraxonas pequeñas (<100 μm) sin diferenciarse en microscleras y megascleras (Suficiente)'
