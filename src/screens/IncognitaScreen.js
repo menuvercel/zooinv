@@ -1,12 +1,33 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { 
+    View, 
+    Text, 
+    StyleSheet, 
+    TouchableOpacity, 
+    SafeAreaView, 
+    ScrollView,
+    StatusBar,
+    Dimensions,
+    Animated
+} from 'react-native';
 import Header from '../components/Header';
 import { caracteristicasClaves, getSiguientePregunta, getTaxonById } from '../data/taxonomia';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
 
 const IncognitaScreen = ({ navigation }) => {
     const [preguntaActual, setPreguntaActual] = useState(caracteristicasClaves[0]);
     const [resultado, setResultado] = useState(null);
     const [historial, setHistorial] = useState([]);
+    const [scrollY] = useState(new Animated.Value(0));
+
+    // Animación para la línea separadora
+    const headerLineOpacity = scrollY.interpolate({
+        inputRange: [0, 20],
+        outputRange: [1, 0.7],
+        extrapolate: 'clamp'
+    });
 
     const handleRespuesta = (respuesta) => {
         // Guardar la pregunta actual y la respuesta en el historial
@@ -28,7 +49,6 @@ const IncognitaScreen = ({ navigation }) => {
             const taxonEncontrado = getTaxonById(siguiente.id);
             setResultado(taxonEncontrado);
         } else if (siguiente.tipo === 'pregunta') {
-            // Si hay otra pregunta, buscarla y mostrarla
             // Si hay otra pregunta, buscarla y mostrarla
             const nuevaPregunta = caracteristicasClaves.find(p => p.id === siguiente.id);
             if (nuevaPregunta) {
@@ -81,27 +101,47 @@ const IncognitaScreen = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header />
-            <View style={styles.backButtonContainer}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Text style={styles.backButtonText}>← Volver</Text>
-                </TouchableOpacity>
+            <StatusBar barStyle="light-content" backgroundColor="#121212" />
+            
+            {/* Header simplificado con línea delgada */}
+            <View style={styles.headerContainer}>
+                <View style={styles.headerContent}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Text style={styles.backButtonText}>←</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Identificar Incógnita</Text>
+                </View>
+                <Animated.View 
+                    style={[
+                        styles.headerLine, 
+                        { opacity: headerLineOpacity }
+                    ]} 
+                />
             </View>
 
-            <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.title}>Identificar Incógnita</Text>
-
+            <Animated.ScrollView 
+                contentContainerStyle={styles.content}
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                    { useNativeDriver: false }
+                )}
+                scrollEventThrottle={16}
+                showsVerticalScrollIndicator={false}
+            >
                 {/* Historial de respuestas */}
                 {historial.length > 0 && (
                     <View style={styles.historialContainer}>
-                        <Text style={styles.historialTitle}>Historial:</Text>
+                        <Text style={styles.seccionTitulo}>Historial</Text>
                         {historial.map((item, index) => (
                             <View key={index} style={styles.historialItem}>
-                                <Text style={styles.historialPregunta}>{item.pregunta}</Text>
-                                <Text style={styles.historialRespuesta}>Respuesta: {item.respuesta}</Text>
+                                <Text style={styles.historialNumero}>{index + 1}</Text>
+                                <View style={styles.historialContenido}>
+                                    <Text style={styles.historialPregunta}>{item.pregunta}</Text>
+                                    <Text style={styles.historialRespuesta}>{item.respuesta}</Text>
+                                </View>
                             </View>
                         ))}
                     </View>
@@ -110,46 +150,59 @@ const IncognitaScreen = ({ navigation }) => {
                 {/* Mostrar resultado si existe */}
                 {resultado ? (
                     <View style={styles.resultadoContainer}>
-                        <Text style={styles.resultadoTitle}>Resultado:</Text>
-                        <Text style={styles.resultadoTaxon}>{resultado.nombre}</Text>
-                        <Text style={styles.resultadoTipo}>Tipo: {resultado.tipo.charAt(0).toUpperCase() + resultado.tipo.slice(1)}</Text>
-
-                        <Text style={styles.caracteristicasTitle}>Características:</Text>
-                        {resultado.caracteristicas.map((caract, index) => (
-                            <Text key={index} style={styles.caracteristica}>• {caract}</Text>
-                        ))}
-
-                        <TouchableOpacity
-                            style={styles.botonPrimario}
-                            onPress={() => navigation.navigate('Detail', {
-                                item: resultado,
-                                title: resultado.nombre,
-                                type: resultado.tipo
-                            })}
+                        <LinearGradient
+                            colors={['#1E1E1E', '#2A2D3E']}
+                            style={styles.resultadoGradient}
                         >
-                            <Text style={styles.botonPrimarioText}>Ver detalles</Text>
-                        </TouchableOpacity>
+                            <Text style={styles.resultadoTaxon}>{resultado.nombre}</Text>
+                            <Text style={styles.resultadoTipo}>{resultado.tipo.charAt(0).toUpperCase() + resultado.tipo.slice(1)}</Text>
 
-                        <TouchableOpacity
-                            style={styles.botonSecundario}
-                            onPress={reiniciar}
-                        >
-                            <Text style={styles.botonSecundarioText}>Comenzar de nuevo</Text>
-                        </TouchableOpacity>
+                            <View style={styles.seccion}>
+                                <Text style={styles.seccionTitulo}>Características</Text>
+                                <View style={styles.caracteristicasContainer}>
+                                    {resultado.caracteristicas.map((caract, index) => (
+                                        <View key={index} style={styles.caracteristicaCard}>
+                                            <Text style={styles.caracteristicaNumero}>{index + 1}</Text>
+                                            <Text style={styles.caracteristicaTexto}>{caract}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.botonPrimario}
+                                onPress={() => navigation.navigate('Detail', {
+                                    item: resultado,
+                                    title: resultado.nombre,
+                                    type: resultado.tipo
+                                })}
+                            >
+                                <Text style={styles.botonPrimarioText}>Ver detalles</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.botonSecundario}
+                                onPress={reiniciar}
+                            >
+                                <Text style={styles.botonSecundarioText}>Comenzar de nuevo</Text>
+                            </TouchableOpacity>
+                        </LinearGradient>
                     </View>
                 ) : (
                     <View style={styles.preguntaContainer}>
                         <Text style={styles.pregunta}>{preguntaActual.pregunta}</Text>
 
-                        {preguntaActual.opciones.map((opcion, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={styles.opcion}
-                                onPress={() => handleRespuesta(opcion.texto)}
-                            >
-                                <Text style={styles.opcionText}>{opcion.texto}</Text>
-                            </TouchableOpacity>
-                        ))}
+                        <View style={styles.opcionesContainer}>
+                            {preguntaActual.opciones.map((opcion, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.opcion}
+                                    onPress={() => handleRespuesta(opcion.texto)}
+                                >
+                                    <Text style={styles.opcionText}>{opcion.texto}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
 
                         {historial.length > 0 && (
                             <TouchableOpacity
@@ -161,7 +214,7 @@ const IncognitaScreen = ({ navigation }) => {
                         )}
                     </View>
                 )}
-            </ScrollView>
+            </Animated.ScrollView>
         </SafeAreaView>
     );
 };
@@ -169,143 +222,236 @@ const IncognitaScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#121212',
     },
-    backButtonContainer: {
-        padding: 10,
+    headerContainer: {
+        height: 60,
+        width: '100%',
+        backgroundColor: '#1E1E1E',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    headerContent: {
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    headerLine: {
+        position: 'absolute',
+        bottom: 0,
+        width: '70%',
+        height: 1.5,
+        backgroundColor: '#2A2D3E',
+        alignSelf: 'center',
+    },
+    headerTitle: {
+        fontSize: 26,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        flex: 1,
+        textAlign: 'center',
+        marginRight: 30, // Compensar el espacio del botón de regreso
     },
     backButton: {
-        padding: 8,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     backButtonText: {
-        color: '#2980b9',
-        fontSize: 16,
+        fontSize: 24,
+        color: '#FFFFFF',
     },
     content: {
-        padding: 20,
-        paddingBottom: 40,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
+        paddingHorizontal: 20,
+        paddingBottom: 30,
     },
     historialContainer: {
-        marginBottom: 20,
-        padding: 10,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 8,
-    },
-    historialTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 10,
+        marginBottom: 25,
+        marginTop: 10,
     },
     historialItem: {
-        marginBottom: 8,
-        paddingLeft: 10,
-        borderLeftWidth: 2,
-        borderLeftColor: '#2980b9',
-    },
-    historialPregunta: {
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    historialRespuesta: {
-        fontSize: 14,
-        fontStyle: 'italic',
-        color: '#555',
-    },
-    preguntaContainer: {
-        backgroundColor: 'white',
-        padding: 15,
-        borderRadius: 10,
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 15,
+        backgroundColor: '#2A2D3E',
+        borderRadius: 12,
+        padding: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOpacity: 0.25,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    historialNumero: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        backgroundColor: '#A0E7E5',
+        color: '#121212',
+        textAlign: 'center',
+        lineHeight: 26,
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginRight: 12,
+    },
+    historialContenido: {
+        flex: 1,
+    },
+    historialPregunta: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#FFFFFF',
+        marginBottom: 4,
+    },
+    historialRespuesta: {
+        fontSize: 15,
+        color: '#A0E7E5',
+    },
+    preguntaContainer: {
+        backgroundColor: '#1E1E1E',
+        borderRadius: 12,
+        padding: 20,
+        marginTop: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 5,
+        elevation: 2,
     },
     pregunta: {
-        fontSize: 18,
+        fontSize: 22,
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginBottom: 25,
+        color: '#FFFFFF',
         textAlign: 'center',
     },
+    opcionesContainer: {
+        marginBottom: 15,
+    },
     opcion: {
-        backgroundColor: '#2980b9',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 10,
+        backgroundColor: '#2A2D3E',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(160, 231, 229, 0.2)',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.25,
+        shadowRadius: 2,
+        elevation: 1,
     },
     opcionText: {
-        color: 'white',
-        fontSize: 16,
+        color: '#FFFFFF',
+        fontSize: 17,
         textAlign: 'center',
     },
     resultadoContainer: {
-        backgroundColor: 'white',
-        padding: 15,
-        borderRadius: 10,
+        borderRadius: 12,
+        overflow: 'hidden',
+        marginTop: 10,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOpacity: 0.25,
+        shadowRadius: 5,
+        elevation: 2,
     },
-    resultadoTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
+    resultadoGradient: {
+        padding: 20,
+        backgroundColor: '#1E1E1E',
     },
     resultadoTaxon: {
-        fontSize: 22,
+        fontSize: 32,
         fontWeight: 'bold',
-        color: '#2980b9',
         marginBottom: 5,
+        color: '#FFFFFF',
     },
     resultadoTipo: {
-        fontSize: 16,
+        fontSize: 18,
         fontStyle: 'italic',
-        color: '#555',
-        marginBottom: 15,
+        color: '#A0E7E5',
+        marginBottom: 25,
     },
-    caracteristicasTitle: {
-        fontSize: 16,
+    seccion: {
+        backgroundColor: '#2A2D3E',
+        marginBottom: 25,
+        borderRadius: 12,
+        padding: 16,
+    },
+    seccionTitulo: {
+        fontSize: 22,
         fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 10,
-    },
-    caracteristica: {
-        fontSize: 14,
-        marginBottom: 5,
+        marginBottom: 20,
+        color: '#FFFFFF',
+        borderLeftWidth: 4,
+        borderLeftColor: '#A0E7E5',
         paddingLeft: 10,
     },
+    caracteristicasContainer: {
+        marginBottom: 10,
+    },
+    caracteristicaCard: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 15,
+        backgroundColor: 'rgba(160, 231, 229, 0.15)',
+        borderRadius: 12,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    caracteristicaNumero: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        backgroundColor: '#A0E7E5',
+        color: '#121212',
+        textAlign: 'center',
+        lineHeight: 26,
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginRight: 12,
+    },
+    caracteristicaTexto: {
+        flex: 1,
+        fontSize: 16,
+        lineHeight: 24,
+        color: '#FFFFFF',
+    },
     botonPrimario: {
-        backgroundColor: '#2980b9',
-        padding: 15,
-        borderRadius: 8,
+        backgroundColor: '#A0E7E5',
+        padding: 16,
+        borderRadius: 12,
         marginTop: 20,
         alignItems: 'center',
     },
     botonPrimarioText: {
-        color: 'white',
-        fontSize: 16,
+        color: '#121212',
+        fontSize: 17,
         fontWeight: 'bold',
     },
     botonSecundario: {
-        backgroundColor: '#f0f0f0',
-        padding: 15,
-        borderRadius: 8,
-        marginTop: 10,
+        backgroundColor: 'rgba(160, 231, 229, 0.15)',
+        padding: 16,
+        borderRadius: 12,
+        marginTop: 12,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(160, 231, 229, 0.3)',
     },
     botonSecundarioText: {
-        color: '#555',
-        fontSize: 16,
+        color: '#A0E7E5',
+        fontSize: 17,
     },
 });
 
 export default IncognitaScreen;
-

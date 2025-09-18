@@ -6,6 +6,10 @@ import ClasesScreen from '../screens/ClasesScreen';
 import SubclasesScreen from '../screens/SubclasesScreen';
 import DetailScreen from '../screens/DetailScreen';
 import IncognitaScreen from '../screens/IncognitaScreen';
+import SearchScreen from '../screens/SearchScreen';
+import SavedItemsScreen from '../screens/SavedItemsScreen';
+import ManualPDFScreen from '../screens/ManualPDFScreen';
+import AboutScreen from '../screens/AboutScreen';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +27,10 @@ const AppNavigator = () => {
             <Stack.Screen name="Subclases" component={SubclasesScreen} />
             <Stack.Screen name="Detail" component={DetailScreen} />
             <Stack.Screen name="Incognita" component={IncognitaScreen} />
+            <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen name="Saved" component={SavedItemsScreen} />
+            <Stack.Screen name="ManualPDF" component={ManualPDFScreen} />
+            <Stack.Screen name="About" component={AboutScreen} />
         </Stack.Navigator>
     );
 };
