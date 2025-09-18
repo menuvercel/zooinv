@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    Image, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    Image,
     SafeAreaView,
     StatusBar,
     Animated,
@@ -12,11 +12,11 @@ import {
     BackHandler,
     FlatList
 } from 'react-native';
-import { 
-    getClasesByFiloId, 
-    getSubclasesByClaseId, 
-    getOrdenesBySubclaseId, 
-    filos 
+import {
+    getClasesByFiloId,
+    getSubclasesByClaseId,
+    getOrdenesBySubclaseId,
+    filos
 } from '../data/taxonomia';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
@@ -31,13 +31,13 @@ const DetailScreen = ({ route, navigation }) => {
     const [scrollY] = useState(new Animated.Value(0));
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const flatListRef = useRef(null);
-    
+
     // Acceder al contexto de favoritos
     const { isFavorite, addFavorite, removeFavorite } = useFavorites();
-    
+
     // Verificar si este taxón está en favoritos
     const isCurrentFavorite = isFavorite(item.id, type);
-    
+
     // Función para alternar el estado de favorito
     const toggleFavorite = () => {
         if (isCurrentFavorite) {
@@ -54,12 +54,12 @@ const DetailScreen = ({ route, navigation }) => {
                 imagenId: item.id,
                 nombreTaxon: item.nombre
             };
-            
+
             // Guardar el taxón (sin las referencias directas a imágenes)
             addFavorite(taxonToSave);
         }
     };
-    
+
     // Controlamos el botón de atrás físico del dispositivo
     useFocusEffect(
         useCallback(() => {
@@ -87,18 +87,18 @@ const DetailScreen = ({ route, navigation }) => {
                     const filoId = item?.filoId || parentFiloId;
                     const claseId = item?.claseId;
                     const subclaseId = item?.subclaseId;
-                    
+
                     if (filoId && claseId) {
                         // Buscamos la clase padre
                         const clases = getClasesByFiloId(filoId);
                         const clase = clases.find(c => c.id === claseId);
-                        
+
                         if (clase) {
                             if (subclaseId) {
                                 // Si hay subclaseId, navegamos a la subclase
                                 const subclases = getSubclasesByClaseId(filoId, claseId);
                                 const subclase = subclases.find(sc => sc.id === subclaseId);
-                                
+
                                 if (subclase) {
                                     navigation.navigate('Detail', {
                                         item: subclase,
@@ -124,12 +124,12 @@ const DetailScreen = ({ route, navigation }) => {
                     // Si estamos en una subclase, volvemos a la clase
                     const filoId = item?.filoId || parentFiloId;
                     const claseId = item?.claseId;
-                    
+
                     if (filoId && claseId) {
                         // Buscamos la clase padre
                         const clases = getClasesByFiloId(filoId);
                         const clase = clases.find(c => c.id === claseId);
-                        
+
                         if (clase) {
                             navigation.navigate('Detail', {
                                 item: clase,
@@ -143,11 +143,11 @@ const DetailScreen = ({ route, navigation }) => {
                 } else if (type === 'clase') {
                     // Si estamos en una clase, volvemos al filo
                     const filoId = item?.filoId || parentFiloId;
-                    
+
                     if (filoId) {
                         // Buscamos el filo padre
                         const filoPadre = filos.find(f => f.id === filoId);
-                        
+
                         if (filoPadre) {
                             navigation.navigate('Detail', {
                                 item: filoPadre,
@@ -158,18 +158,19 @@ const DetailScreen = ({ route, navigation }) => {
                         }
                     }
                 }
-                
+
                 return false; // Permite el comportamiento predeterminado (volver)
             };
 
-            // Añadimos el listener para el botón de atrás
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            // ✅ NUEVA API - Correcto
+            const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-            // Limpiamos el listener cuando el componente se desmonta
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            // ✅ NUEVA API - Correcto
+            return () => backHandler.remove();
         }, [navigation, route.params, type, item, parentFiloId, fromSearch, lastQuery])
     );
-    
+
+
     // Animación para la línea separadora
     const headerLineOpacity = scrollY.interpolate({
         inputRange: [0, 20],
@@ -191,10 +192,10 @@ const DetailScreen = ({ route, navigation }) => {
                     {item.caracteristicas.map((caracteristica, index) => {
                         const esSuficiente = caracteristica.includes('(Suficiente)');
                         const textoSinSuficiente = caracteristica.replace('(Suficiente)', '').trim();
-                        
+
                         return (
-                            <View 
-                                key={index} 
+                            <View
+                                key={index}
                                 style={[
                                     styles.caracteristicaCard,
                                     esSuficiente && styles.caracteristicaCardSuficiente
@@ -299,25 +300,25 @@ const DetailScreen = ({ route, navigation }) => {
             />
         </View>
     );
-    
+
     // Función para manejar el cambio de imagen
     const handleImageChange = (event) => {
         if (!event || !event.nativeEvent) return;
-        
+
         const slideWidth = width;
         const offset = event.nativeEvent.contentOffset.x;
         const slideIndex = Math.round(offset / slideWidth);
-        
+
         if (slideIndex !== currentImageIndex) {
             setCurrentImageIndex(slideIndex);
         }
     };
-    
+
     // Función para renderizar los indicadores de página
     const renderPaginationDots = () => {
         const images = item?.imagenes || [];
         if (images.length <= 1) return null;
-        
+
         return (
             <View style={styles.paginationContainer}>
                 {images.map((_, index) => (
@@ -340,7 +341,7 @@ const DetailScreen = ({ route, navigation }) => {
             onPress={() => {
                 if (fromSearch) {
                     // Si venimos de la búsqueda, volvemos a la pantalla de búsqueda con la consulta original
-                    navigation.navigate('Search', { 
+                    navigation.navigate('Search', {
                         lastQuery: lastQuery,
                         fromDetail: true,
                         timestamp: new Date().getTime() // Añadir timestamp para asegurar cambio en params
@@ -370,10 +371,10 @@ const DetailScreen = ({ route, navigation }) => {
             style={styles.favoriteButton}
             onPress={toggleFavorite}
         >
-            <Ionicons 
-                name={isCurrentFavorite ? "bookmark" : "bookmark-outline"} 
-                size={24} 
-                color={isCurrentFavorite ? "#A0E7E5" : "#ffffff"} 
+            <Ionicons
+                name={isCurrentFavorite ? "bookmark" : "bookmark-outline"}
+                size={24}
+                color={isCurrentFavorite ? "#A0E7E5" : "#ffffff"}
             />
         </TouchableOpacity>
     );
@@ -389,28 +390,28 @@ const DetailScreen = ({ route, navigation }) => {
 
     // Preparar las imágenes para el slider usando la utilidad
     let images = [];
-    
+
     // Si venimos de guardados, usamos la utilidad para cargar las imágenes
     if (route.params?.fromSaved) {
         // Cargar la imagen principal usando la utilidad
         const mainImage = getImageById(item.id, type, item.nombre);
         images.push(mainImage);
-        
+
         // Para algunos taxones, podríamos tener múltiples imágenes
         // Por ahora, solo añadimos la principal
-    } 
+    }
     // Si es una visualización normal, usamos las imágenes proporcionadas directamente
     else {
         // Si hay un array de imágenes, lo usamos
         if (item.imagenes && Array.isArray(item.imagenes) && item.imagenes.length > 0) {
             images = [...item.imagenes];
-        } 
+        }
         // Si no hay array pero hay una imagen individual, la usamos
         else if (item.imagen) {
             images = [item.imagen];
         }
     }
-    
+
     // Si después de todo no tenemos imágenes, usamos un placeholder
     if (images.length === 0) {
         images = [require('../../assets/images/placeholder.png')];
@@ -420,7 +421,7 @@ const DetailScreen = ({ route, navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#121212" />
-            
+
             {/* Header con botón de retroceso y favoritos */}
             <View style={styles.headerContainer}>
                 <View style={styles.headerContent}>
@@ -428,15 +429,15 @@ const DetailScreen = ({ route, navigation }) => {
                     <Text style={styles.headerTitle}>{title || type.charAt(0).toUpperCase() + type.slice(1)}</Text>
                     {renderFavoriteButton()}
                 </View>
-                <Animated.View 
+                <Animated.View
                     style={[
-                        styles.headerLine, 
+                        styles.headerLine,
                         { opacity: headerLineOpacity }
-                    ]} 
+                    ]}
                 />
             </View>
 
-            <Animated.ScrollView 
+            <Animated.ScrollView
                 contentContainerStyle={styles.content}
                 onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -459,14 +460,14 @@ const DetailScreen = ({ route, navigation }) => {
                             onMomentumScrollEnd={handleImageChange}
                             onScroll={Animated.event(
                                 [{ nativeEvent: { contentOffset: { x: new Animated.Value(0) } } }],
-                                { 
+                                {
                                     useNativeDriver: false,
                                     listener: (event) => {
                                         // Actualizar el índice durante el desplazamiento también
                                         const slideWidth = width;
                                         const offset = event.nativeEvent.contentOffset.x;
                                         const slideIndex = Math.round(offset / slideWidth);
-                                        
+
                                         if (slideIndex !== currentImageIndex && slideIndex >= 0 && slideIndex < images.length) {
                                             setCurrentImageIndex(slideIndex);
                                         }

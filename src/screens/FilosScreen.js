@@ -35,11 +35,15 @@ const FilosScreen = ({ navigation }) => {
                 navigation.navigate('Home');
                 return true;
             };
-            
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
+            // ✅ NUEVA API - Correcto
+            const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            // ✅ NUEVA API - Correcto
+            return () => backHandler.remove();
         }, [navigation])
     );
+
 
     // Animación para el encabezado
     const headerTranslateY = scrollX.interpolate({

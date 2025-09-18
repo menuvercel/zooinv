@@ -24,7 +24,7 @@ const { width, height } = Dimensions.get('window');
 
 const ManualPDFScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
-    
+
     // Manejar el botón físico de atrás
     useFocusEffect(
         useCallback(() => {
@@ -32,24 +32,28 @@ const ManualPDFScreen = ({ navigation }) => {
                 navigation.navigate('Home');
                 return true;
             };
-            
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
+            // ✅ NUEVA API - Correcto
+            const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            // ✅ NUEVA API - Correcto
+            return () => backHandler.remove();
         }, [navigation])
     );
+
 
     // Función para abrir el PDF con un enfoque más simple
     const openPDF = async () => {
         try {
             setLoading(true);
-            
+
             // URL del manual de zoología de invertebrados
             // Reemplaza esto con la URL real donde esté alojado tu PDF
             const pdfUrl = 'https://drive.google.com/file/d/18-jovB9Ffa5bC4zYJdG9ZpCLE0K0jHma/view';
-            
+
             // Verificamos si podemos abrir la URL
             const canOpen = await Linking.canOpenURL(pdfUrl);
-            
+
             if (canOpen) {
                 await Linking.openURL(pdfUrl);
             } else {
@@ -58,7 +62,7 @@ const ManualPDFScreen = ({ navigation }) => {
                     "No se ha encontrado una aplicación que pueda abrir este archivo PDF."
                 );
             }
-            
+
             setLoading(false);
         } catch (error) {
             console.error('Error al abrir el PDF:', error);
@@ -70,7 +74,7 @@ const ManualPDFScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#121212" />
-            
+
             {/* Header con efecto de vidrio */}
             <BlurView intensity={80} tint="dark" style={styles.header}>
                 <View style={styles.headerContent}>
@@ -83,25 +87,25 @@ const ManualPDFScreen = ({ navigation }) => {
                     <Text style={styles.headerTitle}>Manual en PDF</Text>
                 </View>
             </BlurView>
-            
+
             {/* Contenido para visualizar el PDF */}
-            <ScrollView 
+            <ScrollView
                 style={styles.contentContainer}
                 contentContainerStyle={styles.scrollContent}
             >
                 <View style={styles.pdfPlaceholder}>
-                    <Image 
-                        source={require('../../assets/images/pdf-icon.png')} 
+                    <Image
+                        source={require('../../assets/images/pdf-icon.png')}
                         style={styles.pdfIcon}
                         resizeMode="contain"
                     />
                     <Text style={styles.pdfTitle}>Manual de Zoología de Invertebrados</Text>
                     <Text style={styles.pdfDescription}>
-                        El manual completo está disponible como archivo PDF. 
+                        El manual completo está disponible como archivo PDF.
                         Puedes abrirlo con la aplicación predeterminada de tu dispositivo.
                     </Text>
-                    
-                    <TouchableOpacity 
+
+                    <TouchableOpacity
                         style={styles.openButton}
                         onPress={openPDF}
                         disabled={loading}

@@ -24,7 +24,7 @@ const { width } = Dimensions.get('window');
 const SearchScreen = ({ navigation, route }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    
+
     // Controlar el botón de atrás para evitar navegación incorrecta
     useFocusEffect(
         useCallback(() => {
@@ -33,13 +33,16 @@ const SearchScreen = ({ navigation, route }) => {
                 navigation.navigate('Filos');
                 return true;
             };
-            
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
+            // Nueva API: addEventListener retorna un objeto con método remove()
+            const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            // Nueva API: usar backHandler.remove() en lugar de removeEventListener
+            return () => backHandler.remove();
         }, [navigation])
     );
 
-    // Al montar el componente, verificamos si venimos directamente de otra pantalla principal
+    // Segundo useFocusEffect - Este está bien, no lo toques
     useFocusEffect(
         useCallback(() => {
             // Si no venimos de DetailScreen y no hay lastQuery, limpiamos los parámetros
@@ -50,7 +53,7 @@ const SearchScreen = ({ navigation, route }) => {
         }, [])
     );
 
-    // Mantenemos la búsqueda al volver a esta pantalla
+    // Tercer useFocusEffect - Este está bien, no lo toques
     useFocusEffect(
         useCallback(() => {
             // Si hay parámetros con texto de búsqueda, lo restauramos

@@ -23,20 +23,20 @@ const { width } = Dimensions.get('window');
 const SavedItemsScreen = ({ navigation }) => {
     const { favorites, removeFavorite } = useFavorites();
 
-    // Depuración: Verificamos las imágenes al entrar en la pantalla
+    // Primer useFocusEffect - Este está bien, no lo toques
     useFocusEffect(
         useCallback(() => {
             // Verificar si hay imágenes en los favoritos
             if (favorites && favorites.length > 0) {
                 // Log para depuración
                 console.log(`Tenemos ${favorites.length} favoritos guardados.`);
-                
+
                 // Verificar cada favorito
                 favorites.forEach((fav, index) => {
                     const tieneImagen = fav.imagen !== undefined && fav.imagen !== null;
                     const tieneImagenes = fav.imagenes && Array.isArray(fav.imagenes) && fav.imagenes.length > 0;
-                    
-                    console.log(`Favorito ${index+1} (${fav.nombre}): ${tieneImagen ? 'tiene imagen principal' : 'NO tiene imagen principal'}, ${tieneImagenes ? `tiene ${fav.imagenes.length} imágenes` : 'NO tiene array de imágenes'}`);
+
+                    console.log(`Favorito ${index + 1} (${fav.nombre}): ${tieneImagen ? 'tiene imagen principal' : 'NO tiene imagen principal'}, ${tieneImagenes ? `tiene ${fav.imagenes.length} imágenes` : 'NO tiene array de imágenes'}`);
                 });
             } else {
                 console.log('No hay favoritos guardados.');
@@ -44,7 +44,7 @@ const SavedItemsScreen = ({ navigation }) => {
         }, [favorites])
     );
 
-    // Manejar el botón físico de atrás
+    // ✅ SEGUNDO useFocusEffect CORREGIDO
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
@@ -52,11 +52,15 @@ const SavedItemsScreen = ({ navigation }) => {
                 navigation.navigate('Home');
                 return true;
             };
-            
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
+            // Nueva API: addEventListener retorna un objeto con método remove()
+            const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            // Nueva API: usar backHandler.remove() en lugar de removeEventListener
+            return () => backHandler.remove();
         }, [navigation])
     );
+
 
     // Abrir el detalle del elemento
     const openItemDetail = (item) => {
@@ -90,8 +94,8 @@ const SavedItemsScreen = ({ navigation }) => {
                     text: "Cancelar",
                     style: "cancel"
                 },
-                { 
-                    text: "Eliminar", 
+                {
+                    text: "Eliminar",
                     onPress: () => removeFavorite(item.id, item.tipo),
                     style: "destructive"
                 }
@@ -110,7 +114,7 @@ const SavedItemsScreen = ({ navigation }) => {
             console.log(`Error al cargar imagen para ${item.nombre}: ${error.message}`);
             image = require('../../assets/images/placeholder.png');
         }
-        
+
         return (
             <TouchableOpacity
                 style={styles.itemContainer}
@@ -133,17 +137,17 @@ const SavedItemsScreen = ({ navigation }) => {
                                 console.log(`Error de imagen para ${item.nombre}: ${e.nativeEvent.error}`);
                             }}
                         />
-                        
+
                         <View style={styles.itemTextContainer}>
                             <Text style={styles.itemName}>{item.nombre || "Sin nombre"}</Text>
                             <Text style={styles.itemType}>
-                                {item.tipo ? 
-                                    item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1) : 
+                                {item.tipo ?
+                                    item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1) :
                                     "Desconocido"
                                 }
                             </Text>
                         </View>
-                        
+
                         <TouchableOpacity
                             style={styles.removeButton}
                             onPress={() => confirmDelete(item)}

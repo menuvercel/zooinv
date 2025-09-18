@@ -27,19 +27,19 @@ const AboutScreen = ({ navigation }) => {
     const appVersion = "1.0.0";
     // Estado para controlar la carga
     const [loading, setLoading] = useState(false);
-    
+
     // Función para abrir el PDF con un enfoque más simple
     const openManual = async () => {
         try {
             setLoading(true);
-            
+
             // URL del manual de zoología de invertebrados
             // Reemplaza esto con la URL real donde esté alojado tu PDF
             const pdfUrl = 'https://drive.google.com/file/d/18-jovB9Ffa5bC4zYJdG9ZpCLE0K0jHma/view';
-            
+
             // Verificamos si podemos abrir la URL
             const canOpen = await Linking.canOpenURL(pdfUrl);
-            
+
             if (canOpen) {
                 await Linking.openURL(pdfUrl);
             } else {
@@ -48,7 +48,7 @@ const AboutScreen = ({ navigation }) => {
                     "No se ha encontrado una aplicación que pueda abrir este archivo PDF."
                 );
             }
-            
+
             setLoading(false);
         } catch (error) {
             console.error('Error al abrir el PDF:', error);
@@ -56,7 +56,7 @@ const AboutScreen = ({ navigation }) => {
             alert('No se pudo abrir el PDF. Por favor, inténtalo de nuevo más tarde.');
         }
     };
-    
+
     // Manejar el botón físico de atrás
     useFocusEffect(
         useCallback(() => {
@@ -64,16 +64,19 @@ const AboutScreen = ({ navigation }) => {
                 navigation.navigate('Home');
                 return true;
             };
-            
-            BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
+            // ✅ NUEVA API - Correcto
+            const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            // ✅ NUEVA API - Correcto
+            return () => backHandler.remove();
         }, [navigation])
     );
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#121212" />
-            
+
             {/* Header con efecto de vidrio */}
             <BlurView intensity={80} tint="dark" style={styles.header}>
                 <View style={styles.headerContent}>
@@ -86,8 +89,8 @@ const AboutScreen = ({ navigation }) => {
                     <Text style={styles.headerTitle}>Acerca de la App</Text>
                 </View>
             </BlurView>
-            
-            <ScrollView 
+
+            <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.contentContainer}
                 showsVerticalScrollIndicator={false}
@@ -106,7 +109,7 @@ const AboutScreen = ({ navigation }) => {
                         <Text style={styles.versionText}>Actualizada: {lastUpdate}</Text>
                     </View>
                 </View>
-                
+
                 {/* Tarjetas de información */}
                 <View style={styles.infoCards}>
                     {/* Tarjeta de Idea y Organización */}
@@ -124,7 +127,7 @@ const AboutScreen = ({ navigation }) => {
                         </View>
                         <Text style={styles.cardContent}>Rolando Yunior Fernandez Rivero</Text>
                     </LinearGradient>
-                    
+
                     {/* Tarjeta de Diseño y Programación */}
                     <LinearGradient
                         colors={['#1E1E2D', '#161822']}
@@ -140,7 +143,7 @@ const AboutScreen = ({ navigation }) => {
                         </View>
                         <Text style={styles.cardContent}>Gilberto Hernandez Acosta</Text>
                     </LinearGradient>
-                    
+
                     {/* Tarjeta de Contenido e Información */}
                     <LinearGradient
                         colors={['#1E1E2D', '#161822']}
@@ -168,7 +171,7 @@ const AboutScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </LinearGradient>
                 </View>
-                
+
                 {/* Footer con información Universidad */}
                 <View style={styles.footer}>
                     <Image
